@@ -3,6 +3,9 @@ uuid = "d257e7ad-0399-4729-ab27-f264e306a93c"
 authors = ["bryan <bryan.deng002@gmail.com> and contributors"]
 version = "0.1.0"
 
+[deps]
+Images = "916415d5-f1e6-5110-898d-aaa5f9f070e0"
+
 [compat]
 julia = "1"
 
