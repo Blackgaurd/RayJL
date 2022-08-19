@@ -97,13 +97,4 @@ function raytrace(objects::Array)
     return image
 end
 
-objects = [
-    Sphere(Vec3(0, 0, 0), 1, SolidColor(255, 255, 255)),
-]
-
-start = time()
-image = raytrace(objects)
-@printf("Time: %.2fs\n", time() - start)
-save_image(image, "test.png")
-
 end # module RayJL
