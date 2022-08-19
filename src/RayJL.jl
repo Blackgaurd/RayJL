@@ -87,11 +87,23 @@ function raytrace(objects::Array)
             z = CELL_DIM * (j - 1) + CELL_DIM / 2 - IMG_REAL_DIMS[2] / 2
 
             ray = ray_from_points(CAMERA_POS, Vec3(DIS_TO_IMG + CAMERA_POS.x, y, z), Color(255, 255, 255), 1)
+            if i == 14 && j == 160
+                shoot_ray(ray, objects)
+            end
             image[i, j] = shoot_ray(ray, objects)
         end
     end
 
     return image
 end
+
+objects = [
+    Sphere(Vec3(0, 0, 0), 1, SolidColor(255, 255, 255)),
+]
+
+start = time()
+image = raytrace(objects)
+@printf("Time: %.2fs\n", time() - start)
+save_image(image, "test.png")
 
 end # module RayJL

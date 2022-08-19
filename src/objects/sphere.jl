@@ -22,6 +22,9 @@ function find_intersection(s::Sphere, r::Ray3D)::Tuple{Bool,Float64}
     end
 
     t = (-b - sqrt(D)) / (2 * a)
+    if t < 0
+        return false, 0
+    end
     return true, t
 end
 

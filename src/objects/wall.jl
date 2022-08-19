@@ -1,4 +1,4 @@
-struct Wall <: Object
+struct Plane <: Object
     # infinite plane defined by a point and a normal
 
     n::Vec3 # normal
@@ -6,13 +6,13 @@ struct Wall <: Object
     texture::Texture
 end
 
-function find_intersection(w::Wall, r::Ray3D)::Tuple{Bool,Float64}
+function find_intersection(w::Plane, r::Ray3D)::Tuple{Bool,Float64}
     # ray origin: (o1, o2, o3)
     # ray direction: (d1, d2, d3)
     # ray equation: (x, y, z) = (o1 + d1*t, o2 + d2*t, o3 + d3*t)
 
-    # point of wall: (p1, p2, p3)
-    # normal of wall: (N1, N2, N3)
+    # point of plane: (p1, p2, p3)
+    # normal of plane: (N1, N2, N3)
     # plane equation: N1(x - p1) + N2(y - p2) + N3(z - p3) = 0
 
     # solve for t: N1(o1 + d1*t - p1) + N2(o2 + d2*t - p2) + N3(o3 + d3*t - p3) = 0
@@ -32,6 +32,6 @@ function find_intersection(w::Wall, r::Ray3D)::Tuple{Bool,Float64}
     return true, t
 end
 
-function find_normal(w::Wall, p::Vec3)::Vec3
+function find_normal(w::Plane, p::Vec3)::Vec3
     return w.n
 end
