@@ -1,10 +1,9 @@
-struct Wall
+struct Wall <: Object
     # infinite plane defined by a point and a normal
 
     n::Vec3 # normal
     p::Vec3 # point on plane
-    ref::Float64 # reflectance ∈ [0, 1]
-    b::Float64 # brightness ∈ [0, 1]
+    texture::Texture
 end
 
 function find_intersection(w::Wall, r::Ray3D)::Tuple{Bool,Float64}

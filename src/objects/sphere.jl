@@ -1,13 +1,11 @@
-struct Sphere
+struct Sphere <: Object
     o::Vec3 # origin
     r::Float64 # radius
-    ref::Float64 # reflectance ∈ [0, 1]
-    b::Float64 # brightness ∈ [0, 1]
+    texture::Texture
 
-    Sphere(origin::Vec3, radius::Real, reflectance::Real, brightness::Real) = radius <= 0 ? error("radius of sphere must be positive") :
-        reflectance < 0 || reflectance > 1 ? error("reflectance of sphere must be in [0, 1]") :
-        brightness < 0 || brightness > 1 ? error("brightness of sphere must be in [0, 1]") :
-        new(origin, radius, reflectance, brightness)
+    Sphere(origin::Vec3, radius::Real, texture::Texture) = radius <= 0 ?
+        error("radius of sphere must be positive") :
+        new(origin, radius, texture)
 end
 
 function find_intersection(s::Sphere, r::Ray3D)::Tuple{Bool,Float64}

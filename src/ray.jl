@@ -5,12 +5,14 @@ struct Ray3D
 
     o::Vec3 # origin
     d::Vec3 # direction
+    color::Color
+    intensity::Float64
 
-    Ray3D(origin::Vec3, direction::Vec3) = new(origin, normalize(direction))
+    Ray3D(origin::Vec3, direction::Vec3, color::Color, intensity::Real) = new(origin, normalize(direction), color, intensity)
 end
 
-function ray_from_points(p1::Vec3, p2::Vec3)::Ray3D
-    return Ray3D(p1, normalize(p2 - p1))
+function ray_from_points(p1::Vec3, p2::Vec3, color::Color, intensity::Real)::Ray3D
+    return Ray3D(p1, normalize(p2 - p1), color, intensity)
 end
 
 function point(r::Ray3D, t::Float64)::Vec3
@@ -22,5 +24,5 @@ function find_reflection(d::Ray3D, normal::Vec3)::Vec3
 end
 
 function normalize(ray::Ray3D)::Ray3D
-    return Ray3D(ray.o, normalize(ray.d))
+    return Ray3D(ray.o, normalize(ray.d), ray.color, ray.intensity)
 end

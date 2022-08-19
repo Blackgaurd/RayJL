@@ -5,15 +5,22 @@ using Images
 using Printf
 println("Packages loaded.")
 
+include("color.jl")
 include("vec3.jl")
 include("ray.jl")
 
+include("textures/texture_t.jl")
+include("textures/solid_color.jl")
+include("textures/mirror.jl")
+include("textures/tinted_mirror.jl")
+
+include("objects/object_t.jl")
 include("objects/sphere.jl")
 include("objects/wall.jl")
 
 include("visualize.jl")
 
-function shoot_ray(ray::Ray3D, objects::Array, previous_obj::Int64=-1)
+function shoot_ray(ray::Ray3D, objects::Array, previous_obj::Int64=-1)::Color
     # recursively shoots a ray until it either
     # hits an object with 0 reflectance or doesn't hit anything
     # returns the concentration of light that hits the object
@@ -35,21 +42,25 @@ function shoot_ray(ray::Ray3D, objects::Array, previous_obj::Int64=-1)
 
     # ray doesn't hit anything
     if first_object_ind == -1
-        return 0
+        return Color(0, 0, 0)
     end
 
-    # ray hits an object with 0 reflectance
     obj = objects[first_object_ind]
-    if obj.ref == 0
-        return obj.b
+
+    if !obj.texture.reflect
+        # ray hits an object with texture
+        # that doesn't reflect light
+        return get_color(obj.texture) * ray.intensity
     end
 
-    # ray hits an object with non-zero reflectance
+    # ray hits an object with texture
+    # that does reflect light
     intersection = point(ray, first_intersection)
     normal = find_normal(obj, intersection)
-    reflected_vec = find_reflection(ray, normal)
-    reflected_ray = Ray3D(intersection, reflected_vec)
-    return obj.ref * shoot_ray(reflected_ray, objects, first_object_ind)
+    reflected_dir = find_reflection(ray, normal)
+    reflected_ray = Ray3D(intersection, reflected_dir, ray.color, ray.intensity)
+    reflected_ray = apply_reflectance(obj.texture, reflected_ray)
+    return shoot_ray(reflected_ray, objects, first_object_ind)
 end
 
 function raytrace(objects::Array)
@@ -67,7 +78,7 @@ function raytrace(objects::Array)
 
     CELL_DIM = IMG_REAL_DIMS[1] / IMG_CELL_DIMS[1]
 
-    image = zeros(IMG_CELL_DIMS)
+    image = Array{Color}(undef, IMG_CELL_DIMS[1], IMG_CELL_DIMS[2])
 
     for i = 1:IMG_CELL_DIMS[1]
         for j = 1:IMG_CELL_DIMS[2]
@@ -75,30 +86,12 @@ function raytrace(objects::Array)
             y = CELL_DIM * (i2 - 1) + CELL_DIM / 2 - IMG_REAL_DIMS[1] / 2
             z = CELL_DIM * (j - 1) + CELL_DIM / 2 - IMG_REAL_DIMS[2] / 2
 
-            ray = ray_from_points(CAMERA_POS, Vec3(DIS_TO_IMG + CAMERA_POS.x, y, z))
+            ray = ray_from_points(CAMERA_POS, Vec3(DIS_TO_IMG + CAMERA_POS.x, y, z), Color(255, 255, 255), 1)
             image[i, j] = shoot_ray(ray, objects)
         end
     end
 
     return image
 end
-
-objects = [
-    Sphere(Vec3(0, 0.3, 1), 3, 0.5, 0), # top right sphere
-    Sphere(Vec3(-1, -4.2, -3), 2.5, 0.7, 0.5), # bottom left sphere
-    #Sphere(Vec3(2, 4, -4.2), 1.9, 0.9, 0.5), # top left sphere
-    #Sphere(Vec3(2, 4, 5.3), 1.9, 0.3, 0.5), # top right back square
-    Wall(Vec3(0, 1, 0), Vec3(0, -10, 0), 0, 1),
-    Wall(Vec3(0, -1, 0), Vec3(0, 10, 0), 0, 0.9),
-    Wall(Vec3(0, 0, 1), Vec3(0, 0, -10), 0, 0.8),
-    Wall(Vec3(0, 0, -1), Vec3(0, 0, 10), 0, 0.7),
-    Wall(Vec3(-1, 0, 0), Vec3(10, 0, 0), 0, 0.6),
-]
-
-t = time()
-image = raytrace(objects)
-dt = time() - t
-@printf("Time: %.2fs\n", dt)
-save_image(image, "ray2.png")
 
 end # module RayJL
