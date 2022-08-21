@@ -8,7 +8,7 @@ struct Plane <: Object
 
     texture::Texture
 
-    Plane(a::Float64, b::Float64, c::Float64, d::Float64, texture::Texture) = new(a, b, c, d, texture)
+    Plane(a::Real, b::Real, c::Real, d::Real, texture::Texture) = new(a, b, c, d, texture)
     Plane(p1::Vec3, p2::Vec3, p3::Vec3, texture::Texture) = begin
         # plane equation from three points
         v1 = p2 - p1
@@ -21,13 +21,12 @@ end
 
 function find_intersection(w::Plane, r::Ray3D)::Tuple{Bool, Float64}
     # intersection of plane: ax + by + cz + d = 0
-    # with ray: (x, y, z) + t * (dx, dy, dz)
-    # a(t * dx) + b(t * dy) + c(t * dz) + d = 0
-    # at * adx + bt * bdy + ct * cdz + d = 0
-    # t(a + b + c) + adx + bdy + cdz + d = 0
-    # t = -(a + b + c) / (adx + bdy + cdz + d)
+    # with ray: (x, y, z) = (ox + t * dx, oy + t * dy, oz + t * dz)
+    # a(ox + t * dx) + b(oy + t * dy) + c(oz + t * dz) + d = 0
+    # t = -(a * ox + b * oy + c * oz + d) / (a * dx + b * dy + c * dz)
 
-    t = -(w.a + w.b + w.c) / (r.d.x + r.d.y + r.d.z + w.d)
+    t = -(w.a * r.o.x + w.b * r.o.y + w.c * r.o.z + w.d)
+    t /= (w.a * r.d.x + w.b * r.d.y + w.c * r.d.z)
     if t < 0
         return false, 0
     end
