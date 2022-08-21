@@ -63,7 +63,13 @@ function shoot_ray(ray::Ray3D, objects::Array, previous_obj::Int64=-1)::Color
     return shoot_ray(reflected_ray, objects, first_object_ind)
 end
 
-function raytrace(objects::Array, camera_pos::Vec3, resolution::Tuple{Int, Int}, dis_to_image::Real, fov::Real)::Array
+function raytrace(objects::Array, camera_pos::Vec3, resolution::Tuple{Int, Int}, dis_to_image::Real, fov::Real; threads=1)::Array
+    if threads > Threads.nthreads()
+        @printf("Warning: requested %d threads, but only %d are available\n", threads, Threads.nthreads())
+        @printf("Setting number of threads to %d\n", Threads.nthreads())
+        threads = Threads.nthreads()
+    end
+
     if fov <= 0 || fov >= 180
         error("fov must be between 0 and 180")
     end
@@ -81,18 +87,18 @@ function raytrace(objects::Array, camera_pos::Vec3, resolution::Tuple{Int, Int},
 
     image = Array{Color}(undef, resolution[1], resolution[2])
 
-    for i = 1:resolution[1]
-        for j = 1:resolution[2]
-            i2 = resolution[1] - i + 1
-            y = CELL_DIM * (i2 - 1) + CELL_DIM / 2 - IMG_REAL_DIMS[1] / 2
-            z = CELL_DIM * (j - 1) + CELL_DIM / 2 - IMG_REAL_DIMS[2] / 2
+    Threads.@threads for k in 1:resolution[1] * resolution[2]
+        i = (k - 1) % resolution[1] + 1
+        j = (k - 1) ÷ resolution[1] + 1
+        i2 = resolution[1] - i + 1
+        y = CELL_DIM * (i2 - 1) + CELL_DIM / 2 - IMG_REAL_DIMS[1] / 2
+        z = CELL_DIM * (j - 1) + CELL_DIM / 2 - IMG_REAL_DIMS[2] / 2
 
-            ray = ray_from_points(camera_pos, Vec3(dis_to_image + camera_pos.x, y, z), Color(255, 255, 255), 1)
-            if i == 14 && j == 160
-                shoot_ray(ray, objects)
-            end
-            image[i, j] = shoot_ray(ray, objects)
+        ray = ray_from_points(camera_pos, Vec3(dis_to_image + camera_pos.x, y, z), Color(255, 255, 255), 1)
+        if i == 14 && j == 160
+            shoot_ray(ray, objects)
         end
+        image[i, j] = shoot_ray(ray, objects)
     end
 
     return image
