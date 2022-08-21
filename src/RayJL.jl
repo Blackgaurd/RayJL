@@ -16,7 +16,7 @@ include("textures/tinted_mirror.jl")
 
 include("objects/object_t.jl")
 include("objects/sphere.jl")
-include("objects/wall.jl")
+include("objects/plane.jl")
 
 include("visualize.jl")
 
@@ -63,30 +63,31 @@ function shoot_ray(ray::Ray3D, objects::Array, previous_obj::Int64=-1)::Color
     return shoot_ray(reflected_ray, objects, first_object_ind)
 end
 
-function raytrace(objects::Array)
-    # for now camera will be facing positive x direction
-    CAMERA_POS = Vec3(-25, 0, 0)
-    DIS_TO_IMG = 1
-    IMG_CELL_DIMS = (1440, 2560)
-    FOV = deg2rad(40)
+function raytrace(objects::Array, camera_pos::Vec3, resolution::Tuple{Int, Int}, dis_to_image::Real, fov::Real)::Array
+    if fov <= 0 || fov >= 180
+        error("fov must be between 0 and 180")
+    end
 
-    img_real_w = 2 * DIS_TO_IMG * tan(FOV / 2)
+    # for now camera will be facing positive x direction
+    fov = deg2rad(fov)
+
+    img_real_w = 2 * dis_to_image * tan(fov / 2)
     IMG_REAL_DIMS = (
         img_real_w,
-        img_real_w * IMG_CELL_DIMS[2] / IMG_CELL_DIMS[1]
+        img_real_w * resolution[2] / resolution[1]
     )
 
-    CELL_DIM = IMG_REAL_DIMS[1] / IMG_CELL_DIMS[1]
+    CELL_DIM = IMG_REAL_DIMS[1] / resolution[1]
 
-    image = Array{Color}(undef, IMG_CELL_DIMS[1], IMG_CELL_DIMS[2])
+    image = Array{Color}(undef, resolution[1], resolution[2])
 
-    for i = 1:IMG_CELL_DIMS[1]
-        for j = 1:IMG_CELL_DIMS[2]
-            i2 = IMG_CELL_DIMS[1] - i + 1
+    for i = 1:resolution[1]
+        for j = 1:resolution[2]
+            i2 = resolution[1] - i + 1
             y = CELL_DIM * (i2 - 1) + CELL_DIM / 2 - IMG_REAL_DIMS[1] / 2
             z = CELL_DIM * (j - 1) + CELL_DIM / 2 - IMG_REAL_DIMS[2] / 2
 
-            ray = ray_from_points(CAMERA_POS, Vec3(DIS_TO_IMG + CAMERA_POS.x, y, z), Color(255, 255, 255), 1)
+            ray = ray_from_points(camera_pos, Vec3(dis_to_image + camera_pos.x, y, z), Color(255, 255, 255), 1)
             if i == 14 && j == 160
                 shoot_ray(ray, objects)
             end

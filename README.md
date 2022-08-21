@@ -3,7 +3,7 @@
 Simple ray tracer written in julia from scratch. Currently supports the following objects:
 
 - sphere
-- 2D plane (wall)
+- 2D plane
 
 ![demo](img/demo.png)
 

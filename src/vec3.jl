@@ -20,6 +20,11 @@ function Base.:-(a::Vec3, b::Vec3)::Vec3
     return Vec3(a.x - b.x, a.y - b.y, a.z - b.z)
 end
 
+function Base.:*(a::Vec3, b::Vec3)::Vec3
+    # cross product
+    return Vec3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)
+end
+
 function Base.:*(v::Vec3, x::Float64)::Vec3
     return Vec3(v.x * x, v.y * x, v.z * x)
 end
