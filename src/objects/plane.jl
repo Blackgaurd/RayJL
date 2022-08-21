@@ -26,7 +26,7 @@ function find_intersection(w::Plane, r::Ray3D)::Tuple{Bool, Float64}
     # t = -(a * ox + b * oy + c * oz + d) / (a * dx + b * dy + c * dz)
 
     t = -(w.a * r.o.x + w.b * r.o.y + w.c * r.o.z + w.d)
-    t /= (w.a * r.d.x + w.b * r.d.y + w.c * r.d.z)
+    t /= w.a * r.d.x + w.b * r.d.y + w.c * r.d.z
     if t < 0
         return false, 0
     end

@@ -6,9 +6,9 @@ end
 
 function mix(a::Color, b::Color)::Color
     return Color(
-        (a.r + b.r) / 2,
-        (a.g + b.g) / 2,
-        (a.b + b.b) / 2
+        (a.r + b.r) ÷ 2,
+        (a.g + b.g) ÷ 2,
+        (a.b + b.b) ÷ 2
     )
 end
 
