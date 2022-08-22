@@ -1,7 +1,6 @@
 module RayJL
 
 println("Loading packages...")
-using Images
 using Printf
 println("Packages loaded.")
 
