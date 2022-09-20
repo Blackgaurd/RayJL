@@ -1,0 +1,1 @@
+abstract type Light end
