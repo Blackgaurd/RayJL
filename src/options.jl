@@ -1,4 +1,4 @@
-struct Resolution
+mutable struct Resolution
     w::Real
     h::Real
 end

@@ -3,7 +3,7 @@ struct DirectionalLight <: Light
     color::Vec3
     intensity::Float32
 
-    DirectionalLight(direction::Vec3, color::Vec3, intensity::Float32) = new(-direction, color, intensity)
+    DirectionalLight(direction::Vec3, color::Vec3, intensity::Real) = new(-direction, color, intensity)
 end
 
 function direction_at(l::DirectionalLight, point::Vec3)::Vec3

@@ -1,4 +1,4 @@
-function check_interference(ray_o::Vec3, ray_d::Vec3, objects::Vector{Object}, source_ind::Int)::Bool
+function check_interference(ray_o::Vec3, ray_d::Vec3, objects::Array{Object, 1}, source_ind::Int)::Bool
     for (i, obj) in enumerate(objects)
         if i == source_ind
             continue
@@ -11,7 +11,7 @@ function check_interference(ray_o::Vec3, ray_d::Vec3, objects::Vector{Object}, s
     return false
 end
 
-function cast_ray(ray_o::Vec3, ray_d::Vec3, objects::Vector{Object}, lights::Vector{Object}, settings::Settings, max_depth::Int)::Vec3
+function cast_ray(ray_o::Vec3, ray_d::Vec3, objects::Array{Object, 1}, lights::Array{Light, 1}, settings::Settings, max_depth::Int)::Vec3
     if max_depth == 0
         return settings.background_color
     end
@@ -57,7 +57,7 @@ function cast_ray(ray_o::Vec3, ray_d::Vec3, objects::Vector{Object}, lights::Vec
     hit_color
 end
 
-function render(look_from::Vec3, look_at::Vec3, objects::Vector{Object}, lights::Vector{Object}, settings::Settings, anti_aliasing::Int=1, recursion_depth::Int=5, camera_up::Vec3=Vec3(0.0, 1.0, 0.0))::Matrix{Vec3}
+function render(look_from::Vec3, look_at::Vec3, objects::Array{Object, 1}, lights::Array{Light, 1}, settings::Settings, anti_aliasing::Int, recursion_depth::Int, camera_up::Vec3=Vec3(0.0, 1.0, 0.0))::Matrix{Vec3}
     fov = deg2rad(settings.fov)
     img_res = settings.resolution
     world_res_w = 2 * settings.distance_to_image * tan(fov / 2)
@@ -67,7 +67,7 @@ function render(look_from::Vec3, look_at::Vec3, objects::Vector{Object}, lights:
     img_res.w = Int(img_res.w)
     img_res.h = Int(img_res.h)
 
-    image = fill(Vec3(0.0, 0.0, 0.0), img_res.w, img_res.h)
+    image = fill(Vec3(0.0, 0.0, 0.0), img_res.h, img_res.w)
 
     camera = camera_mat44(look_from, look_at, camera_up)
     for i in 0:img_res.h-1
@@ -81,10 +81,10 @@ function render(look_from::Vec3, look_at::Vec3, objects::Vector{Object}, lights:
                     ) |> normalize
                     ray_d = transform_dir(camera, ray_d)
 
-                    image[i][j] += cast_ray(look_from, ray_d, objects, lights, settings, recursion_depth)
+                    image[i + 1, j + 1] += cast_ray(look_from, ray_d, objects, lights, settings, recursion_depth)
                 end
             end
-            image[i][j] /= anti_aliasing^2
+            image[i + 1, j + 1] /= anti_aliasing^2
         end
     end
 

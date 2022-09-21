@@ -21,7 +21,7 @@ end
 function normalize(a::Vec3)::Vec3
     return a / norm(a)
 end
-function abs(a::Vec3)::Vec3
+function vabs(a::Vec3)::Vec3
     Vec3(abs(a.x), abs(a.y), abs(a.z))
 end
 
@@ -34,6 +34,9 @@ function Base.:+(a::Vec3, b::Vec3)::Vec3
 end
 function Base.:+(a::Vec3, b::Real)::Vec3
     Vec3(a.x + b, a.y + b, a.z + b)
+end
+function Base.:-(a::Vec3)::Vec3
+    Vec3(-a.x, -a.y, -a.z)
 end
 function Base.:-(a::Vec3, b::Vec3)::Vec3
     Vec3(a.x - b.x, a.y - b.y, a.z - b.z)
@@ -68,6 +71,8 @@ struct Mat44
         for i in 1:4
             arr[i, i] = 1.0
         end
+
+        new(arr)
     end
 end
 
@@ -75,7 +80,7 @@ end
 function camera_mat44(look_from::Vec3, look_at::Vec3, up::Vec3=Vec3(0.0, 1.0, 0.0))::Mat44
     forward = (look_from - look_at) |> normalize
 
-    if abs(forward) == abs(up)
+    if vabs(forward) == vabs(up)
         error("forward vector is parallel to up vector")
     end
 
@@ -104,19 +109,19 @@ function camera_mat44(look_from::Vec3, look_at::Vec3, up::Vec3=Vec3(0.0, 1.0, 0.
 end
 function transform_point(mat::Mat44, vec::Vec3)::Vec3
     ret = Vec3(
-        vec.x * mat.arr[1][1] + vec.y * mat.arr[2][1] + vec.z * mat.arr[3][1],
-        vec.x * mat.arr[1][2] + vec.y * mat.arr[2][2] + vec.z * mat.arr[3][2],
-        vec.x * mat.arr[1][3] + vec.y * mat.arr[2][3] + vec.z * mat.arr[3][3]
+        vec.x * mat.arr[1, 1] + vec.y * mat.arr[2, 1] + vec.z * mat.arr[3, 1],
+        vec.x * mat.arr[1, 2] + vec.y * mat.arr[2, 2] + vec.z * mat.arr[3, 2],
+        vec.x * mat.arr[1, 3] + vec.y * mat.arr[2, 3] + vec.z * mat.arr[3, 3]
     )
-    w = vec.x * mat.arr[1][4] + vec.y * mat.arr[2][4] + vec.z * mat.arr[3][4]
+    w = vec.x * mat.arr[1, 4] + vec.y * mat.arr[2, 4] + vec.z * mat.arr[3, 4]
 
     w == 0 ? ret : ret / w
 end
 function transform_dir(mat::Mat44, vec::Vec3)::Vec3
     Vec3(
-        vec.x * mat.arr[1][1] + vec.y * mat.arr[2][1] + vec.z * mat.arr[3][1],
-        vec.x * mat.arr[1][2] + vec.y * mat.arr[2][2] + vec.z * mat.arr[3][2],
-        vec.x * mat.arr[1][3] + vec.y * mat.arr[2][3] + vec.z * mat.arr[3][3]
+        vec.x * mat.arr[1, 1] + vec.y * mat.arr[2, 1] + vec.z * mat.arr[3, 1],
+        vec.x * mat.arr[1, 2] + vec.y * mat.arr[2, 2] + vec.z * mat.arr[3, 2],
+        vec.x * mat.arr[1, 3] + vec.y * mat.arr[2, 3] + vec.z * mat.arr[3, 3]
     )
 end
 
@@ -125,9 +130,9 @@ function Base.:*(a::Mat44, b::Mat44)::Mat44
     ret = Mat44()
     for i in 1:4
         for j in 1:4
-            ret.arr[i][j] = 0
+            ret.arr[i, j] = 0
             for k in 1:4
-                ret.arr[i][j] += a.arr[i][k] * b.arr[k][j]
+                ret.arr[i, j] += a.arr[i, k] * b.arr[k, j]
             end
         end
     end
