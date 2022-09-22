@@ -14,7 +14,8 @@ export Material, Reflect, Diffuse, Refract
 include("objects/object_t.jl")
 include("objects/sphere.jl")
 include("objects/triangle.jl")
-export Object, Sphere, Triangle
+include("objects/polymesh.jl")
+export Object, Sphere, Triangle, load_obj
 
 # lights
 include("lights/light_t.jl")
