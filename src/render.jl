@@ -1,3 +1,5 @@
+using ProgressMeter
+
 function check_interference(ray_o::Vec3, ray_d::Vec3, objects::Array{Object, 1}, source_ind::Int)::Bool
     for (i, obj) in enumerate(objects)
         if i == source_ind || !(typeof(obj.material) == Diffuse)
@@ -55,7 +57,7 @@ function cast_ray(ray_o::Vec3, ray_d::Vec3, objects::Array{Object, 1}, lights::A
         hit_color += cast_ray(intersect_p + bias, reflect_d, objects, lights, settings, max_depth - 1) * 0.8
 
     elseif typeof(obj.material) == Refract
-        refact_k = fresnel(ray_d, normal, obj.material.ior)
+        refract_k = fresnel(ray_d, normal, obj.material.ior)
 
         refract_color = Vec3(0.0, 0.0, 0.0)
         if refract_k < 1
@@ -85,7 +87,7 @@ function render(look_from::Vec3, look_at::Vec3, objects::Array{Object, 1}, light
     image = fill(Vec3(0.0, 0.0, 0.0), img_res.h, img_res.w)
 
     camera = camera_mat44(look_from, look_at, camera_up)
-    for i in 0:img_res.h-1
+    @showprogress 1 "Rendering..." for i in 0:img_res.h-1
         for j in 0:img_res.w-1
             for a_i in 0:anti_aliasing-1
                 for a_j in 0:anti_aliasing-1

@@ -20,7 +20,8 @@ export Object, Sphere, Triangle, load_obj
 # lights
 include("lights/light_t.jl")
 include("lights/directional.jl")
-export Light, DirectionalLight
+include("lights/point.jl")
+export Light, DirectionalLight, PointLight
 
 # options
 include("options.jl")
