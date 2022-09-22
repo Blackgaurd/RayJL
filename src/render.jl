@@ -1,6 +1,6 @@
 function check_interference(ray_o::Vec3, ray_d::Vec3, objects::Array{Object, 1}, source_ind::Int)::Bool
     for (i, obj) in enumerate(objects)
-        if i == source_ind
+        if i == source_ind || !(typeof(obj.material) == Diffuse)
             continue
         end
         intersect, _ = find_intersect(obj, ray_o, ray_d)
@@ -48,10 +48,25 @@ function cast_ray(ray_o::Vec3, ray_d::Vec3, objects::Array{Object, 1}, lights::A
 
             hit_color += obj.material.albedo / pi * light.intensity * light.color * max(0.0, dot(normal, light_dir))
         end
+
     elseif typeof(obj.material) == Reflect
         reflect_d = reflect(ray_d, normal)
         # todo: change 0.8 to a value in settings
         hit_color += cast_ray(intersect_p + bias, reflect_d, objects, lights, settings, max_depth - 1) * 0.8
+
+    elseif typeof(obj.material) == Refract
+        refact_k = fresnel(ray_d, normal, obj.material.ior)
+
+        refract_color = Vec3(0.0, 0.0, 0.0)
+        if refract_k < 1
+            refract_d = refract(ray_d, normal, obj.material.ior)
+            refract_color = cast_ray(intersect_p - bias, refract_d, objects, lights, settings, max_depth - 1)
+        end
+
+        reflect_d = reflect(ray_d, normal)
+        reflect_color = cast_ray(intersect_p + bias, reflect_d, objects, lights, settings, max_depth - 1)
+
+        hit_color += reflect_color * refract_k + refract_color * (1 - refract_k)
     end
 
     hit_color

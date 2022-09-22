@@ -9,6 +9,9 @@ struct Vec3
 end
 
 # vec3 functions
+function from_rgb(r::Int, g::Int, b::Int)::Vec3
+    Vec3(r, g, b) / 255.0
+end
 function dot(a::Vec3, b::Vec3)::Float32
     return a.x * b.x + a.y * b.y + a.z * b.z
 end
@@ -24,9 +27,10 @@ end
 function vabs(a::Vec3)::Vec3
     Vec3(abs(a.x), abs(a.y), abs(a.z))
 end
-
-⋅(a::Vec3, b::Vec3) = dot(a, b)
-×(a::Vec3, b::Vec3) = cross(a, b)
+function tt_angle(a::Vec3, b::Vec3)::Float32
+    # tail-tail angle
+    acos(dot(a, b) / (norm(a) * norm(b)))
+end
 
 # vec3 arithmetic operators
 function Base.:+(a::Vec3, b::Vec3)::Vec3
