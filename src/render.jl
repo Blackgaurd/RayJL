@@ -1,3 +1,4 @@
+using Distributed
 using ProgressMeter
 
 function check_interference(ray_o::Vec3, ray_d::Vec3, objects::Array{Object, 1}, source_ind::Int)::Bool
@@ -85,9 +86,13 @@ function render(look_from::Vec3, look_at::Vec3, objects::Array{Object, 1}, light
     img_res.h = Int(img_res.h)
 
     image = fill(Vec3(0.0, 0.0, 0.0), img_res.h, img_res.w)
-
     camera = camera_mat44(look_from, look_at, camera_up)
-    @showprogress 1 "Rendering..." for i in 0:img_res.h-1
+
+    p = Progress(img_res.h)
+    update!(p, 0)
+    thread_clock = Threads.Atomic{Int}(0)
+
+    Threads.@threads for i in 0:img_res.h-1
         for j in 0:img_res.w-1
             for a_i in 0:anti_aliasing-1
                 for a_j in 0:anti_aliasing-1
@@ -103,6 +108,8 @@ function render(look_from::Vec3, look_at::Vec3, objects::Array{Object, 1}, light
             end
             image[i + 1, j + 1] /= anti_aliasing^2
         end
+        Threads.atomic_add!(thread_clock, 1)
+        Threads.threadid() == 1 && update!(p, thread_clock[])
     end
 
     image

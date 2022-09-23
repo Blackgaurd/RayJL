@@ -1,7 +1,7 @@
 module RayJL
 
 include("linalg.jl")
-export Vec3, Mat44, camera_mat44, from_rgb
+export Vec3, Mat44, camera_mat44, from_rgb, normalize
 
 # materials
 include("materials/material_t.jl")
