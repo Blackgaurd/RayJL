@@ -6,4 +6,6 @@ All examples are in the [examples](examples/) folder.
 
 Here a few notable demonstrations:
 
+Toilet obj ~47k objects rendered in 16 minutes.
+
 ![toilet](examples/toilet/image.png)
