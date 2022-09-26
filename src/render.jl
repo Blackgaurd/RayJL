@@ -1,4 +1,3 @@
-using Distributed
 using ProgressMeter
 
 function check_interference(ray_o::Vec3, ray_d::Vec3, objects::Array{Object, 1}, source_ind::Int)::Bool

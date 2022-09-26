@@ -9,7 +9,7 @@ function main()
         #Sphere(Vec3(0, -10, 0), 0.5, Diffuse(from_rgb(0, 0, 255))),
         Sphere(Vec3(0, 0, -10025), 10000, Reflect()),
     ]
-    load_obj("examples/toilet/toilet.obj", from_rgb(255, 255, 255), objects)
+    load_obj!("examples/toilet/toilet.obj", from_rgb(255, 255, 255), objects)
     lights::Array{Light,1} = [
         DirectionalLight(-Vec3(100, -30, 55) |> normalize, from_rgb(255, 255, 255), 1)
     ]
@@ -19,7 +19,7 @@ function main()
     println(size(objects))
 
     start = time()
-    image = render(look_from, look_at, objects, lights, settings, 2, 5, Vec3(0, 0, 1))
+    image = render(look_from, look_at, objects, lights, settings, 2, 5, Vec3(0, 1, 0))
     println("Completed in $(time() - start) seconds")
 
     save_png(image, "examples/toilet/image.png")

@@ -1,4 +1,8 @@
-function load_obj(filename::AbstractString, color::Vec3, objects::Array{Object,1})
+function compute_bounds(n::Vec3, d_near::Float32, d_far::Float32)::Tuple{Float32, Float32}
+    
+end
+
+function load_obj!(filename::AbstractString, color::Vec3, objects::Array{Object,1})
     vertices::Array{Vec3,1} = []
     for line in eachline(filename)
         if startswith(line, "v ")

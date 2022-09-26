@@ -10,12 +10,18 @@ include("materials/reflect.jl")
 include("materials/refract.jl")
 export Material, Reflect, Diffuse, Refract
 
+# bounding volume hierarchy
+include("bvh/extent.jl")
+
 # objects
 include("objects/object_t.jl")
 include("objects/sphere.jl")
 include("objects/triangle.jl")
 include("objects/polymesh.jl")
-export Object, Sphere, Triangle, load_obj
+export Object, Sphere, Triangle, load_obj!
+
+include("bvh/octree.jl")
+include("bvh/bvh.jl")
 
 # lights
 include("lights/light_t.jl")

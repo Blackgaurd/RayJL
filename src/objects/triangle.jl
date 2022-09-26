@@ -5,7 +5,10 @@ struct Triangle <: Object
     material::Material
     N::Vec3 # normal
 
-    Triangle(v1::Vec3, v2::Vec3, v3::Vec3, material::Material) = new(v1, v2, v3, material, normalize(cross(v2 - v1, v3 - v1)))
+    Triangle(v1::Vec3, v2::Vec3, v3::Vec3, material::Material) = begin
+        N = cross(v2 - v1, v3 - v1) |> normalize
+        new(v1, v2, v3, material, N, extents)
+    end
 end
 
 function find_normal(tri::Triangle, ray_d::Vec3, intersect::Vec3)::Vec3
@@ -16,6 +19,8 @@ function find_normal(tri::Triangle, ray_d::Vec3, intersect::Vec3)::Vec3
 end
 
 function find_intersect(tri::Triangle, ray_o::Vec3, ray_d::Vec3)::Tuple{Bool, Float32}
+    # Möller–Trumbore intersection algorithm
+
     EPSILON = 1e-6
 
     edge1 = tri.v2 - tri.v1
@@ -44,4 +49,8 @@ function find_intersect(tri::Triangle, ray_o::Vec3, ray_d::Vec3)::Tuple{Bool, Fl
         return (false, 0.0)
     end
     (true, t)
+end
+
+function centroid(tri::Triangle)::Vec3
+    (tri.v1 + tri.v2 + tri.v3) / 3.0
 end
