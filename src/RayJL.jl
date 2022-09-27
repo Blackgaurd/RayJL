@@ -1,5 +1,7 @@
 module RayJL
 
+using ProgressMeter
+
 include("linalg.jl")
 export Vec3, Mat44, camera_mat44, from_rgb, normalize
 
@@ -35,7 +37,8 @@ export Resolution, Settings
 
 # render
 include("render.jl")
-export render, render_cnt
+include("bvh/bvh_render.jl")
+export render, bvh_render
 
 # visualize
 include("visualize.jl")

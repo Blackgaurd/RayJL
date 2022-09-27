@@ -1,9 +1,12 @@
-function check_interference(ray_o::Vec3, ray_d::Vec3, objects::Array{Object,1}, source_ind::Int)::Bool
-    for (i, obj) in enumerate(objects)
-        if i == source_ind || !(obj.material isa Diffuse)
+function bvh_check_interference(ray_o::Vec3, ray_d::Vec3, bvh::BVHNode)::Bool
+    triangles = Triangle[]
+    bvh_intersect!(bvh, ray_o, ray_d, triangles)
+
+    for tri in triangles
+        if !(tri.material isa Diffuse)
             continue
         end
-        intersect, _ = find_intersect(obj, ray_o, ray_d)
+        intersect, _ = find_intersect(tri, ray_o, ray_d)
         if intersect
             return true
         end
@@ -11,15 +14,22 @@ function check_interference(ray_o::Vec3, ray_d::Vec3, objects::Array{Object,1}, 
     false
 end
 
-function cast_ray(ray_o::Vec3, ray_d::Vec3, objects::Array{Object,1}, lights::Array{Light,1}, settings::Settings, max_depth::Int)::Vec3
+function bvh_cast_ray(ray_o::Vec3, ray_d::Vec3, bvh::BVHNode, lights::Array{Light,1}, settings::Settings, max_depth::Int)::Vec3
     if max_depth == 0
+        return settings.background_color
+    end
+
+    triangles = Triangle[]
+    bvh_intersect!(bvh, ray_o, ray_d, triangles)
+
+    if isempty(triangles)
         return settings.background_color
     end
 
     closest_t = Inf32
     obj_ind = -1
-    for (i, obj) in enumerate(objects)
-        intersect, t = find_intersect(obj, ray_o, ray_d)
+    for (i, tri) in enumerate(triangles)
+        intersect, t = find_intersect(tri, ray_o, ray_d)
         if intersect && t < closest_t
             closest_t = t
             obj_ind = i
@@ -30,41 +40,41 @@ function cast_ray(ray_o::Vec3, ray_d::Vec3, objects::Array{Object,1}, lights::Ar
         return settings.background_color
     end
 
-    obj = objects[obj_ind]
+    tri = triangles[obj_ind]
     intersect_p = ray_o + ray_d * closest_t
-    normal = find_normal(obj, ray_d, intersect_p)
+    normal = find_normal(tri, ray_d, intersect_p)
     bias = normal * settings.bias
 
     hit_color = Vec3(0.0, 0.0, 0.0)
 
-    if typeof(obj.material) == Diffuse
+    if typeof(tri.material) == Diffuse
         for light in lights
             light_dir = direction_at(light, intersect_p)
 
             # shadows
-            if check_interference(intersect_p + bias, light_dir, objects, obj_ind)
+            if bvh_check_interference(intersect_p + bias, light_dir, bvh)
                 continue
             end
 
-            hit_color += obj.material.albedo / pi * light.intensity * light.color * max(0.0, dot(normal, light_dir))
+            hit_color += tri.material.albedo / pi * light.intensity * light.color * max(0.0, dot(normal, light_dir))
         end
 
-    elseif typeof(obj.material) == Reflect
+    elseif typeof(tri.material) == Reflect
         reflect_d = reflect(ray_d, normal)
         # todo: change 0.8 to a value in settings
-        hit_color += cast_ray(intersect_p + bias, reflect_d, objects, lights, settings, max_depth - 1) * 0.8
+        hit_color += bvh_cast_ray(intersect_p + bias, reflect_d, bvh, lights, settings, max_depth - 1) * 0.8
 
-    elseif typeof(obj.material) == Refract
-        refract_k = fresnel(ray_d, normal, obj.material.ior)
+    elseif typeof(tri.material) == Refract
+        refract_k = fresnel(ray_d, normal, tri.material.ior)
 
         refract_color = Vec3(0.0, 0.0, 0.0)
         if refract_k < 1
-            refract_d = refract(ray_d, normal, obj.material.ior)
-            refract_color = cast_ray(intersect_p - bias, refract_d, objects, lights, settings, max_depth - 1)
+            refract_d = refract(ray_d, normal, tri.material.ior)
+            refract_color = bvh_cast_ray(intersect_p - bias, refract_d, bvh, lights, settings, max_depth - 1)
         end
 
         reflect_d = reflect(ray_d, normal)
-        reflect_color = cast_ray(intersect_p + bias, reflect_d, objects, lights, settings, max_depth - 1)
+        reflect_color = bvh_cast_ray(intersect_p + bias, reflect_d, bvh, lights, settings, max_depth - 1)
 
         hit_color += reflect_color * refract_k + refract_color * (1 - refract_k)
     end
@@ -72,7 +82,7 @@ function cast_ray(ray_o::Vec3, ray_d::Vec3, objects::Array{Object,1}, lights::Ar
     hit_color
 end
 
-function render(look_from::Vec3, look_at::Vec3, objects::Array{Object,1}, lights::Array{Light,1}, settings::Settings, anti_aliasing::Int, recursion_depth::Int, camera_up::Vec3=Vec3(0.0, 1.0, 0.0))::Matrix{Vec3}
+function bvh_render(look_from::Vec3, look_at::Vec3, bvh::BVHNode, lights::Array{Light,1}, settings::Settings, anti_aliasing::Int, recursion_depth::Int, camera_up::Vec3=Vec3(0.0, 1.0, 0.0))::Matrix{Vec3}
     fov = deg2rad(settings.fov)
     img_res = settings.resolution
     world_res_w = 2 * settings.distance_to_image * tan(fov / 2)
@@ -85,11 +95,7 @@ function render(look_from::Vec3, look_at::Vec3, objects::Array{Object,1}, lights
     image = fill(Vec3(0.0, 0.0, 0.0), img_res.h, img_res.w)
     camera = camera_mat44(look_from, look_at, camera_up)
 
-    p = Progress(img_res.h)
-    update!(p, 0)
-    thread_clock = Threads.Atomic{Int}(0)
-
-    Threads.@threads for i in 0:img_res.h-1
+    @showprogress 1 "rendering..." for i in 0:img_res.h-1
         for j in 0:img_res.w-1
             for a_i in 0:anti_aliasing-1
                 for a_j in 0:anti_aliasing-1
@@ -100,13 +106,11 @@ function render(look_from::Vec3, look_at::Vec3, objects::Array{Object,1}, lights
                     ) |> normalize
                     ray_d = transform_dir(camera, ray_d)
 
-                    image[i+1, j+1] += cast_ray(look_from, ray_d, objects, lights, settings, recursion_depth)
+                    image[i+1, j+1] += bvh_cast_ray(look_from, ray_d, bvh, lights, settings, recursion_depth)
                 end
             end
             image[i+1, j+1] /= anti_aliasing^2
         end
-        Threads.atomic_add!(thread_clock, 1)
-        Threads.threadid() == 1 && update!(p, thread_clock[])
     end
 
     image

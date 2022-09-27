@@ -52,7 +52,20 @@ struct Extents
     end
 end
 
+function in(p::Vec3, extents::Extents)::Bool
+    for i in 1:size(bvh_plane_normals)[1]
+        if !(dot(p, bvh_plane_normals[i]) in extents.d[i])
+            return false
+        end
+    end
+    true
+end
+
 function intersects_extent(extents::Extents, ray_o::Vec3, ray_d::Vec3)::Bool
+    if ray_o in extents
+        return true
+    end
+
     max_t_near = -Inf32
     min_t_far = Inf32
 
