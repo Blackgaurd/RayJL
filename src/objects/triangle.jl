@@ -7,7 +7,7 @@ struct Triangle <: Object
 
     Triangle(v1::Vec3, v2::Vec3, v3::Vec3, material::Material) = begin
         N = cross(v2 - v1, v3 - v1) |> normalize
-        new(v1, v2, v3, material, N, extents)
+        new(v1, v2, v3, material, N)
     end
 end
 
@@ -51,6 +51,6 @@ function find_intersect(tri::Triangle, ray_o::Vec3, ray_d::Vec3)::Tuple{Bool, Fl
     (true, t)
 end
 
-function centroid(tri::Triangle)::Vec3
+function find_centroid(tri::Triangle)::Vec3
     (tri.v1 + tri.v2 + tri.v3) / 3.0
 end

@@ -27,21 +27,22 @@ struct Extents
         new([_Range(Inf32, -Inf32) for i in 1:size(bvh_plane_normals)[1]])
     end
 
-    Extents(p1::Vec3, p2::Vec3, p3::Vec3, p...) = begin
+    Extents(triangles::Array{Triangle,1}) = begin
         d = [_Range(Inf32, -Inf32) for i in 1:size(bvh_plane_normals)[1]]
-        for point in [p1, p2, p3, p...]
+        for tri in triangles
             for i in 1:size(bvh_plane_normals)[1]
-                p_dot_normal = dot(point, bvh_plane_normals[i])
-                d[i].min = min(d[i].min, p_dot_normal)
-                d[i].max = max(d[i].max, p_dot_normal)
+                for p in [tri.v1, tri.v2, tri.v3]
+                    d[i].min = min(d[i].min, dot(p, bvh_plane_normals[i]))
+                    d[i].max = max(d[i].max, dot(p, bvh_plane_normals[i]))
+                end
             end
         end
         new(d)
     end
 
-    Extents(extent1::Extents, extent2::Extents, extent_n...) = begin
+    Extents(extents::Array{Extents,1}) = begin
         d = [_Range(Inf32, -Inf32) for i in 1:size(bvh_plane_normals)[1]]
-        for extent in [extent1, extent2, extent_n...]
+        for extent in extents
             for i in 1:size(bvh_plane_normals)[1]
                 d[i].min = min(d[i].min, extent.d[i].min)
                 d[i].max = max(d[i].max, extent.d[i].max)
@@ -73,7 +74,7 @@ function intersects_extent(extents::Extents, ray_o::Vec3, ray_d::Vec3)::Bool
     max_t_near < min_t_far
 end
 
-function centroid(extent::Extents)::Vec3
+function find_centroid(extent::Extents)::Vec3
     c = Vec3(0, 0, 0)
     for i in 1:size(bvh_plane_normals)[1]
         c += bvh_plane_normals[i] * (extent.d[i].min + extent.d[i].max) / 2.0

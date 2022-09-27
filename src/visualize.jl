@@ -61,8 +61,10 @@ function save_ppm(img::Matrix{Vec3}, filename::String)
             end
         end
     end
+    nothing
 end
 
 function save_png(img::Matrix{Vec3}, filename::String)
     py"save_png"(img, filename)
+    nothing
 end

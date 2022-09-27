@@ -10,7 +10,7 @@ function check_interference(ray_o::Vec3, ray_d::Vec3, objects::Array{Object, 1},
             return true
         end
     end
-    return false
+    false
 end
 
 function cast_ray(ray_o::Vec3, ray_d::Vec3, objects::Array{Object, 1}, lights::Array{Light, 1}, settings::Settings, max_depth::Int)::Vec3
@@ -112,4 +112,35 @@ function render(look_from::Vec3, look_at::Vec3, objects::Array{Object, 1}, light
     end
 
     image
+end
+
+function render_cnt(look_from::Vec3, look_at::Vec3, bvh::BVHNode, settings::Settings, camera_up::Vec3=Vec3(0.0, 1.0, 0.0))::Int
+    fov = deg2rad(settings.fov)
+    img_res = settings.resolution
+    world_res_w = 2 * settings.distance_to_image * tan(fov / 2)
+    world_res = Resolution(world_res_w, world_res_w * img_res.h / img_res.w)
+    cell_size = world_res.w / img_res.w
+
+    img_res.w = Int(img_res.w)
+    img_res.h = Int(img_res.h)
+
+    camera = camera_mat44(look_from, look_at, camera_up)
+
+    intersect_cnt = 0
+    for i in 0:img_res.h-1
+        for j in 0:img_res.w-1
+            ray_d = Vec3(
+                j * cell_size + (cell_size / anti_aliasing) * (a_j + 0.5) - world_res.w / 2,
+                (img_res.h - i) * cell_size + (cell_size / anti_aliasing) * (a_i + 0.5) - world_res.h / 2,
+                -settings.distance_to_image
+            ) |> normalize
+            ray_d = transform_dir(camera, ray_d)
+
+            intersect_tri = Triangle[]
+            bvh_intersect!(bvh, look_from, ray_d, intersect_tri)
+            intersect_cnt += length(intersect_tri)
+        end
+    end
+
+    intersect_cnt
 end
