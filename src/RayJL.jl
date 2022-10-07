@@ -19,12 +19,6 @@ include("objects/triangle.jl")
 include("objects/polymesh.jl")
 export Object, Sphere, Triangle, load_obj!
 
-# bounding volume hierarchy
-include("bvh/extent.jl")
-include("bvh/octree.jl")
-include("bvh/bvh.jl")
-export Extents, build_octree, load_obj
-
 # lights
 include("lights/light_t.jl")
 include("lights/directional.jl")
