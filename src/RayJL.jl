@@ -31,8 +31,7 @@ export Resolution, Settings
 
 # render
 include("render.jl")
-include("bvh/bvh_render.jl")
-export render, bvh_render
+export render
 
 # visualize
 include("visualize.jl")

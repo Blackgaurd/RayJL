@@ -1,4 +1,4 @@
-function load_obj!(filename::String, color::Vec3, objects::Array{Triangle,1})
+function load_obj!(filename::String, color::Vec3, objects::Array{Object,1})
     vertices::Array{Vec3,1} = []
     for line in eachline(filename)
         if startswith(line, "v ")

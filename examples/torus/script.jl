@@ -3,20 +3,16 @@ using RayJL
 function main()
     settings = Settings(
         from_rgb(255, 254, 188),
-        Resolution(192, 108),
+        Resolution(1920, 1080),
         1.0,
         70.0,
         1e-4
     )
 
-    objects::Array{Object,1} = [
-        #Sphere(Vec3(0, -100, 0), 98, Diffuse(from_rgb(255, 255, 255))),
+    objects = Object[
+        Sphere(Vec3(0, -100, 0), 98, Diffuse(from_rgb(255, 255, 255))),
     ]
-    triangles = Triangle[]
-    load_obj!("examples/torus/torus.obj", from_rgb(255, 255, 240), triangles)
-    for triangle in triangles
-        push!(objects, triangle)
-    end
+    load_obj!("examples/torus/torus.obj", from_rgb(255, 255, 240), objects)
 
     lights::Array{Light,1} = [
         PointLight(Vec3(0, 0, 0), from_rgb(0, 255, 0), 1),

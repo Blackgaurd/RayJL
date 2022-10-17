@@ -13,23 +13,28 @@ function from_rgb(r::Int, g::Int, b::Int)::Vec3
     Vec3(r, g, b) / 255.0
 end
 function dot(a::Vec3, b::Vec3)::Float32
-    return a.x * b.x + a.y * b.y + a.z * b.z
+    a.x * b.x + a.y * b.y + a.z * b.z
 end
 function cross(a::Vec3, b::Vec3)::Vec3
-    return Vec3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)
+    Vec3(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x)
 end
 function norm(a::Vec3)::Float32
-    return sqrt(dot(a, a))
+    sqrt(dot(a, a))
 end
 function normalize(a::Vec3)::Vec3
-    return a / norm(a)
+    a / norm(a)
 end
 function vabs(a::Vec3)::Vec3
     Vec3(abs(a.x), abs(a.y), abs(a.z))
 end
 function tt_angle(a::Vec3, b::Vec3)::Float32
     # tail-tail angle
-    acos(dot(a, b) / (norm(a) * norm(b)))
+    x = dot(a, b) / (norm(a) * norm(b))
+    if float_eq(x, 1.0f32)
+        # sometimes x is like 1.0000001 and it breaks the code
+        return 0.0
+    end
+    acos(x)
 end
 
 # vec3 arithmetic operators
